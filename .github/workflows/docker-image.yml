@@ -1,0 +1,23 @@
+name: Docker Images CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build du backend PHP
+      - name: Build backend image
+        run: docker build ./backend --file ./backend/Dockerfile --tag my-backend:latest
+
+      # Build du frontend Node.js
+      - name: Build frontend image
+        run: docker build ./frontend --file ./frontend/Dockerfile --tag my-frontend:latest
