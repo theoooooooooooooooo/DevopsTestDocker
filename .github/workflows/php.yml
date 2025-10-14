@@ -1,4 +1,4 @@
-name: PHP Composer
+name: Backend PHP Tests
 
 on:
   push:
@@ -6,34 +6,29 @@ on:
   pull_request:
     branches: [ "main" ]
 
-permissions:
-  contents: read
-
 jobs:
-  build:
-
+  test-backend:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+          coverage: none
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+      - name: Install dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --no-progress --prefer-dist
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Validate composer.json
+        working-directory: ./backend
+        run: composer validate --strict
 
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
-
-    # - name: Run test suite
-    #   run: composer run-script test
+      - name: Run unit tests (PHPUnit)
+        working-directory: ./backend
+        run: ./vendor/bin/phpunit --testdox
