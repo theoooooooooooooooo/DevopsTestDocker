@@ -2,38 +2,33 @@ name: Backend PHP Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  test-backend:
+  test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./backend
+
     steps:
-      
-name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      
-name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: pdo_pgsql
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, pgsql
 
-      
-name: Install dependencies
-      working-directory: ./backend
-      run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
 
-      
-name: Validate composer.json
-      working-directory: ./backend
-      run: composer validate --strict
+      - name: Fix PHPUnit permissions
+        run: chmod +x ./vendor/bin/phpunit
 
-      
-name: Run unit tests (PHPUnit)
-      working-directory: ./backend
-      run: php vendor/bin/phpunit --testdox
+      - name: Run PHPUnit tests
+        run: ./vendor/bin/phpunit --testdox
