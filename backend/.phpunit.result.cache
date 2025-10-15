@@ -1,0 +1,1 @@
+{"version":1,"defects":[],"times":{"ApiTest::testHealthEndpoint":0.166,"ApiTest::testCreateSalleValidation":0.025,"ApiTest::testSalleCapacitePositive":0.013,"ApiTest::testSalleNomNotEmpty":0.036}}
