@@ -48,6 +48,19 @@ if (preg_match('/^\/salles\/?$/', $path)) {
     }
 } elseif ($path === '/health') {
     echo json_encode(['status' => 'OK', 'message' => 'API de gestion des salles']);
+} elseif ($path === '/' || $path === '') {
+    echo json_encode([
+        'message' => 'API de gestion des salles',
+        'version' => '1.0',
+        'endpoints' => [
+            'GET /health' => 'Vérification de santé',
+            'GET /salles' => 'Liste des salles',
+            'POST /salles' => 'Créer une salle',
+            'GET /salles/{id}' => 'Détails d\'une salle',
+            'PUT /salles/{id}' => 'Modifier une salle',
+            'DELETE /salles/{id}' => 'Supprimer une salle'
+        ]
+    ]);
 } else {
     http_response_code(404);
     echo json_encode(['error' => 'Route non trouvée']);
