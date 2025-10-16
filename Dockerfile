@@ -1,29 +1,15 @@
-############################
-# Étape 1 : Build du Frontend
-############################
-FROM node:18 AS frontend-build
-
-WORKDIR /app
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ .
-# Si tu as un script build, tu peux le garder :
-# RUN npm run build
-# Sinon, on garde le dossier public
-RUN mkdir -p /app/dist && cp -r public/* /app/dist/ || echo "Pas de build, on garde public"
-
-############################
-# Étape 2 : Backend PHP + Apache
-############################
 FROM php:8.2-apache
 
-# Installer PostgreSQL et extensions PDO
+# Installer Node, PostgreSQL et extensions PDO
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    postgresql \
+    nodejs \
+    npm \
     && docker-php-ext-install pdo pdo_pgsql \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Activer mod_rewrite et autoriser les .htaccess
+# Activer mod_rewrite + .htaccess
 RUN a2enmod rewrite && \
     echo "<Directory /var/www/html>\n\
         AllowOverride All\n\
@@ -31,27 +17,28 @@ RUN a2enmod rewrite && \
     </Directory>" > /etc/apache2/conf-available/allow-override.conf && \
     a2enconf allow-override
 
-# Définir le répertoire de travail
-WORKDIR /var/www/html
+# ServerName pour éviter l'avertissement
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copier le backend
+WORKDIR /var/www/html
 COPY backend/ .
 
-# Copier le frontend compilé (ou public) dans un sous-dossier /frontend
-COPY --from=frontend-build /app/dist ./frontend
+# Copier le frontend
+COPY frontend/ ./frontend
 
-# Donner les bons droits
-RUN chown -R www-data:www-data /var/www/html
+# Installer les deps Node
+WORKDIR /var/www/html/frontend
+RUN npm install
 
-# Variables d’environnement par défaut (Render va les écraser)
-ENV DB_HOST=mydb
-ENV DB_PORT=5432
-ENV DB_NAME=mydb
-ENV DB_USER=myuser
-ENV DB_PASSWORD=mypassword
+# Retour dans le backend
+WORKDIR /var/www/html
 
-# Exposer le port 80
+# Script de démarrage qui lance PostgreSQL, Node et Apache
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 80
+EXPOSE 3000
 
-# Lancer Apache
-CMD ["apache2-foreground"]
+CMD ["/start.sh"]
