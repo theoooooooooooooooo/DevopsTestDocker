@@ -1,0 +1,42 @@
+name: Auto Changelog
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Plus spécifique pour le versioning sémantique
+
+jobs:
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Generate changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5  # Version plus récente
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          output-file: 'CHANGELOG.md'
+          release-count: 0
+          skip-on-empty: false
+          skip-commit: false
+          git-message: 'chore(release): update changelog'
+          git-user-name: 'github-actions[bot]'
+          git-user-email: 'github-actions[bot]@users.noreply.github.com'
+      
+      - name: Upload changelog artifact
+        if: steps.changelog.outputs.skipped == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
