@@ -35,12 +35,12 @@ RUN npm install
 WORKDIR /var/www/html
 
 # Exposer les ports
-EXPOSE 80
-EXPOSE 3000
+EXPOSE 8080   # Apache
+EXPOSE 3000   # Node
 
-# CMD pour lancer PostgreSQL + Node + Apache en une seule commande
+# CMD pour lancer PostgreSQL + Node (frontend) en avant-plan et Apache sur 8080 en arrière-plan
 CMD service postgresql start && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
-    cd /var/www/html/frontend && nohup npm start & \
-    apache2-foreground
+    cd /var/www/html/frontend && npm start & \
+    apache2 -D FOREGROUND -k start -f /etc/apache2/apache2.conf -DFOREGROUND -p 8080
