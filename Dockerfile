@@ -17,7 +17,7 @@ RUN npm run build || echo "Aucun build à exécuter — fichiers statiques conse
 FROM php:8.2-apache
 
 # Installer les dépendances PostgreSQL + activer mod_rewrite
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \ 
     libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
