@@ -31,16 +31,14 @@ COPY frontend/ ./frontend
 WORKDIR /var/www/html/frontend
 RUN npm install
 
-# Retour dans backend
 WORKDIR /var/www/html
 
-# Exposer les ports
-EXPOSE 8080   # Apache
-EXPOSE 3000   # Node
+# Exposer seulement le port que Render forwarde (frontend)
+EXPOSE 10000
 
-# CMD pour lancer PostgreSQL + Node (frontend) en avant-plan et Apache sur 8080 en arrière-plan
+# CMD : Node frontend en avant-plan sur PORT, Apache backend en arrière-plan
 CMD service postgresql start && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
-    cd /var/www/html/frontend && npm start & \
-    apache2 -D FOREGROUND -k start -f /etc/apache2/apache2.conf -DFOREGROUND -p 8080
+    cd /var/www/html/frontend && PORT=${PORT:-10000} npm start & \
+    apache2-foreground

@@ -3,7 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
-const PORT = 3000;
+
+// Récupérer le port depuis Render ou fallback à 3000 pour dev local
+const PORT = process.env.PORT || 3000;
 
 // Correction du chemin de base (nécessaire pour les modules ES)
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +19,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`Frontend Node.js démarré sur http://localhost:${PORT}`);
+// Écouter sur 0.0.0.0 pour que Render puisse forwarder le trafic
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Frontend Node.js démarré sur http://0.0.0.0:${PORT}`);
 });
