@@ -40,3 +40,5 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}-frontend:latest
+
+          
