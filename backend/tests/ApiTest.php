@@ -30,4 +30,5 @@ class ApiTest extends TestCase
         $nom = 'Salle A101';
         $this->assertNotEmpty($nom);
     }
+    
 }
