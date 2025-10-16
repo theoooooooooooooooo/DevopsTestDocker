@@ -31,12 +31,13 @@ COPY frontend/ ./frontend
 WORKDIR /var/www/html/frontend
 RUN npm install
 
+# Retour dans backend
 WORKDIR /var/www/html
 
-# Exposer seulement le port que Render forwarde (frontend)
+# Exposer uniquement le port que Render forwarde
 EXPOSE 10000
 
-# CMD : Node frontend en avant-plan sur PORT, Apache backend en arrière-plan
+# CMD : PostgreSQL, Node frontend sur PORT, Apache backend sur 8080 en arrière-plan
 CMD service postgresql start && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
