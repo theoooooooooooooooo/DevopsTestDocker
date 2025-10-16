@@ -3,13 +3,13 @@ Ajouté
 
 * Tests unitaires :
 
-Test basique qui vérifie que le système fonctionne
-Utilise assertTrue(true) - test minimal qui réussit toujours
-Valide la structure des données pour créer une salle
-Vérifie que les clés 'nom' et 'capacite' existent dans le tableau
-Contrôle les types de données (nom = string, capacité = integer)
-S'assure que la capacité d'une salle est un nombre positif
-Vérifie que le nom de la salle n'est pas vide
+Test basique qui vérifie que le système fonctionne. 
+Utilise assertTrue(true) - test minimal qui réussit toujours. 
+Valide la structure des données pour créer une salle. 
+Vérifie que les clés 'nom' et 'capacite' existent dans le tableau. 
+Contrôle les types de données (nom = string, capacité = integer). 
+S'assure que la capacité d'une salle est un nombre positif. 
+Vérifie que le nom de la salle n'est pas vide. 
 
 * Récupération des données de l'API lancer vers le frontend
 
