@@ -44,7 +44,7 @@ COPY --from=frontend-build /app/dist ./frontend
 RUN chown -R www-data:www-data /var/www/html
 
 # Variables d’environnement par défaut (Render va les écraser)
-ENV DB_HOST=db
+ENV DB_HOST=mydb
 ENV DB_PORT=5432
 ENV DB_NAME=mydb
 ENV DB_USER=myuser
