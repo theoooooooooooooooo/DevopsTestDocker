@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Installer Node, PostgreSQL et extensions PDO
+# Installer PostgreSQL, Node.js, npm et PDO pour PostgreSQL
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql \
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_pgsql \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Activer mod_rewrite + .htaccess
+# Activer mod_rewrite + autoriser .htaccess
 RUN a2enmod rewrite && \
     echo "<Directory /var/www/html>\n\
         AllowOverride All\n\
@@ -17,28 +17,30 @@ RUN a2enmod rewrite && \
     </Directory>" > /etc/apache2/conf-available/allow-override.conf && \
     a2enconf allow-override
 
-# ServerName pour éviter l'avertissement
+# Eviter l'avertissement ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Copier le backend
+# Copier backend
 WORKDIR /var/www/html
 COPY backend/ .
 
-# Copier le frontend
+# Copier frontend
 COPY frontend/ ./frontend
 
-# Installer les deps Node
+# Installer dépendances frontend
 WORKDIR /var/www/html/frontend
 RUN npm install
 
-# Retour dans le backend
+# Retour dans backend
 WORKDIR /var/www/html
 
-# Script de démarrage qui lance PostgreSQL, Node et Apache
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
+# Exposer les ports
 EXPOSE 80
 EXPOSE 3000
 
-CMD ["/start.sh"]
+# CMD pour lancer PostgreSQL + Node + Apache en une seule commande
+CMD service postgresql start && \
+    su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
+    su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
+    cd /var/www/html/frontend && nohup npm start & \
+    apache2-foreground
