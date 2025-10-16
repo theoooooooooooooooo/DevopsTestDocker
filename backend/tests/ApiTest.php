@@ -6,7 +6,7 @@ class ApiTest extends TestCase
 {
     public function testHealthEndpoint()
     {
-        $this->assertTrue(true);
+        $this->assertTrue(false);
     }
 
     public function testCreateSalleValidation()
