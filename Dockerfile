@@ -23,15 +23,15 @@ RUN a2enmod rewrite
 
 # Éviter l'avertissement ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
 # Configurer Apache pour écouter sur le port 10000 (Render au lieu de 80)
 RUN sed -i 's/Listen 80/Listen 10000/' /etc/apache2/ports.conf
-# Configuration Apache pour servir frontend React buildé + API PHP
+
+# Configuration Apache simple (comme Railway, port 10000)
 RUN echo '<VirtualHost *:10000>\n\
     ServerName localhost\n\
     DocumentRoot /var/www/html/frontend-build\n\
     \n\
-    # Servir le frontend React buildé\n\
+    # Servir le frontend\n\
     <Directory /var/www/html/frontend-build>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
@@ -39,17 +39,14 @@ RUN echo '<VirtualHost *:10000>\n\
         FallbackResource /index.html\n\
     </Directory>\n\
     \n\
-    # Servir l API PHP\n\
+    # Servir API PHP\n\
     Alias /api /var/www/html/index.php\n\
-    <Location /api>\n\
-        Require all granted\n\
-        SetHandler application/x-httpd-php\n\
-    </Location>\n\
+    Alias /health /var/www/html/index.php\n\
+    Alias /salles /var/www/html/index.php\n\
     \n\
-    # Routes API directes (sans /api)\n\
-    RewriteEngine On\n\
-    RewriteCond %{REQUEST_URI} ^/(health|salles)$\n\
-    RewriteRule ^(.*)$ /index.php [L,QSA]\n\
+    <FilesMatch "\\.php$">\n\
+        SetHandler application/x-httpd-php\n\
+    </FilesMatch>\n\
     \n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
