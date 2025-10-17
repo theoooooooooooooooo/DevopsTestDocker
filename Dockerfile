@@ -17,29 +17,22 @@ RUN a2enmod rewrite && \
     </Directory>" > /etc/apache2/conf-available/allow-override.conf && \
     a2enconf allow-override
 
-# Eviter l'avertissement ServerName
+# Éviter l'avertissement ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Copier backend
+# Copier tout le projet dans le conteneur
 WORKDIR /var/www/html
-COPY backend/ .
+COPY . .
 
-# Copier frontend
-COPY frontend/ ./frontend
-
-# Installer dépendances frontend
-WORKDIR /var/www/html/frontend
+# Installer dépendances Node.js
 RUN npm install
 
-# Retour dans backend
-WORKDIR /var/www/html
-
-# Exposer uniquement le port que Render forwarde
+# Exposer le port que Render forwarde
 EXPOSE 10000
 
-# CMD : PostgreSQL, Node frontend sur PORT, Apache backend sur 8080 en arrière-plan
+# CMD : PostgreSQL, Node frontend, Apache backend
 CMD service postgresql start && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
-    cd /var/www/html/frontend && PORT=${PORT:-10000} npm start & \
+    PORT=${PORT:-10000} node server.js & \
     apache2-foreground

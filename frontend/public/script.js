@@ -3,7 +3,7 @@ async function chargerSalles() {
   container.innerHTML = '<p class="text-center">Chargement des salles...</p>';
 
   try {
-    const response = await fetch("http://localhost:8080/salles");
+    const response = await fetch("/salles");
     if (!response.ok) throw new Error("Erreur HTTP " + response.status);
     const salles = await response.json();
 
