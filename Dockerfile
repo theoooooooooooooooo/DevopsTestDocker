@@ -45,7 +45,7 @@
 #     apache2-foreground
 FROM php:8.2-apache
 
-# Installer PostgreSQL, Node.js, npm et PDO pour PostgreSQL
+# Installer PostgreSQL, Node.js, npm et PDO
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql \
@@ -62,7 +62,7 @@ RUN a2enmod rewrite && \
     </Directory>" > /etc/apache2/conf-available/allow-override.conf && \
     a2enconf allow-override
 
-# Éviter l'avertissement ServerName
+# Eviter l'avertissement ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copier backend
@@ -74,23 +74,21 @@ COPY frontend/ ./frontend
 
 # Installer dépendances frontend
 WORKDIR /var/www/html/frontend
-RUN npm install
+RUN npm install && npm install http-proxy-middleware
 
-# Retour dans le dossier du backend
+# Retour au backend
 WORKDIR /var/www/html
 
-# Adapter Apache pour écouter sur le port Render ($PORT)
-RUN sed -i "s/80/\${PORT}/g" /etc/apache2/ports.conf && \
-    sed -i "s/:80/:${PORT}/g" /etc/apache2/sites-available/000-default.conf || true
+# Config Apache interne sur port 8080
+RUN sed -i "s/80/8080/g" /etc/apache2/ports.conf && \
+    sed -i "s/:80/:8080/g" /etc/apache2/sites-available/000-default.conf || true
 
-# Exposer uniquement le port utilisé par Render
+# Exposer le port que Render forward
 EXPOSE 10000
 
-# Lancer PostgreSQL + Apache + Node sur le même conteneur
+# Lancer PostgreSQL, Apache et Node
 CMD service postgresql start && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
-    cd /var/www/html/frontend && npm start & \
-    sed -i "s/80/${PORT}/g" /etc/apache2/ports.conf && \
-    sed -i "s/:80/:${PORT}/g" /etc/apache2/sites-available/000-default.conf && \
-    apache2-foreground
+    apache2-foreground & \
+    cd /var/www/html/frontend && node server.js
