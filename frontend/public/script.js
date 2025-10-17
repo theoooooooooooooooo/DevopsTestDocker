@@ -53,8 +53,8 @@ async function chargerSalles() {
   container.innerHTML = '<p class="text-center">Chargement des salles...</p>';
 
   try {
-    // 👉 Appel relatif (plus de localhost, ni de port)
-    const response = await fetch("/salles");
+// 👉 Appel vers l'API (préfixe /api)
+    const response = await fetch("/api/salles");
     if (!response.ok) throw new Error("Erreur HTTP " + response.status);
 
     const salles = await response.json();

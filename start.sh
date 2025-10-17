@@ -27,7 +27,6 @@ if [ -f "$PG_HBA" ]; then
     su postgres -c "psql -c 'SELECT pg_reload_conf();'" > /dev/null
     echo "  ✅ Configuration PostgreSQL mise à jour"
 fi
-
 # Créer l'utilisateur et la base de données
 echo "👤 Création de l'utilisateur et de la base de données..."
 su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\"" 2>/dev/null || echo "  Utilisateur déjà existant"
@@ -49,8 +48,13 @@ else
     exit 1
 fi
 
-echo "🎨 Démarrage du frontend..."
-cd /var/www/html/frontend && PORT=${PORT:-10000} npm start &
+# Health statique (évite de passer par index.php)
+echo "<?php http_response_code(200); echo 'OK';" > /var/www/html/health.php
 
-echo "🌐 Démarrage d'Apache..."
+# Adapter Apache au $PORT de Render
+PORT="${PORT:-10000}"
+sed -i "s/^Listen .*/Listen ${PORT}/" /etc/apache2/ports.conf
+sed -i "s/<VirtualHost \*:10000>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
+
+echo "🌐 Apache écoute sur ${PORT}"
 exec apache2-foreground
