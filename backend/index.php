@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Configuration de la base de données
-$host = getenv('DB_HOST') ?: 'db';
+$host = getenv('DB_HOST') ?: '127.0.0.1';
 $dbname = getenv('DB_NAME') ?: 'mydb';
 $username = getenv('DB_USER') ?: 'myuser';
 $password = getenv('DB_PASSWORD') ?: 'mypassword';
