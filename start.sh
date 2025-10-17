@@ -15,21 +15,34 @@ until pg_isready -h 127.0.0.1 -p 5432; do
 done
 echo "✅ PostgreSQL est prêt!"
 
+# Configurer PostgreSQL pour accepter les connexions avec mot de passe
+echo "🔧 Configuration de PostgreSQL..."
+PG_HBA="/etc/postgresql/17/main/pg_hba.conf"
+if [ -f "$PG_HBA" ]; then
+    # Autoriser les connexions locales avec mot de passe
+    echo "local   all             myuser                                  md5" >> "$PG_HBA"
+    echo "host    all             myuser          127.0.0.1/32            md5" >> "$PG_HBA"
+    echo "host    all             myuser          ::1/128                 md5" >> "$PG_HBA"
+    # Recharger la configuration
+    su postgres -c "psql -c 'SELECT pg_reload_conf();'" > /dev/null
+    echo "  ✅ Configuration PostgreSQL mise à jour"
+fi
+
 # Créer l'utilisateur et la base de données
 echo "👤 Création de l'utilisateur et de la base de données..."
-su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\"" || echo "  Utilisateur déjà existant"
-su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\"" || echo "  Base de données déjà existante"
+su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\"" 2>/dev/null || echo "  Utilisateur déjà existant"
+su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\"" 2>/dev/null || echo "  Base de données déjà existante"
 
 # Initialiser le schéma de la base de données
 echo "📊 Initialisation du schéma de la base de données..."
-su postgres -c "PGPASSWORD=mypassword psql -U myuser -d mydb -f /var/www/html/Ini.sql" 2>/dev/null || echo "  Schéma déjà initialisé"
+PGPASSWORD=mypassword psql -h 127.0.0.1 -U myuser -d mydb -f /var/www/html/Ini.sql 2>/dev/null || echo "  Schéma déjà initialisé"
 
 # Vérifier que la table existe
 echo "🔍 Vérification de la table 'salles'..."
-TABLE_EXISTS=$(su postgres -c "PGPASSWORD=mypassword psql -U myuser -d mydb -t -c \"SELECT COUNT(*) FROM information_schema.tables WHERE table_name='salles';\"" | tr -d ' ')
+TABLE_EXISTS=$(PGPASSWORD=mypassword psql -h 127.0.0.1 -U myuser -d mydb -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_name='salles';" | tr -d ' ')
 if [ "$TABLE_EXISTS" = "1" ]; then
     echo "✅ Table 'salles' trouvée"
-    SALLE_COUNT=$(su postgres -c "PGPASSWORD=mypassword psql -U myuser -d mydb -t -c 'SELECT COUNT(*) FROM salles;'" | tr -d ' ')
+    SALLE_COUNT=$(PGPASSWORD=mypassword psql -h 127.0.0.1 -U myuser -d mydb -t -c 'SELECT COUNT(*) FROM salles;' | tr -d ' ')
     echo "  📈 Nombre de salles : $SALLE_COUNT"
 else
     echo "❌ Erreur: La table 'salles' n'existe pas!"
