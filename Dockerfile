@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_pgsql \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Activer mod_rewrite + autoriser .htaccess
+# Activer mod_rewrite et .htaccess
 RUN a2enmod rewrite && \
     echo "<Directory /var/www/html>\n\
         AllowOverride All\n\
@@ -62,7 +62,7 @@ RUN a2enmod rewrite && \
     </Directory>" > /etc/apache2/conf-available/allow-override.conf && \
     a2enconf allow-override
 
-# Eviter l'avertissement ServerName
+# Eviter avertissement ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Copier backend
@@ -76,18 +76,19 @@ COPY frontend/ ./frontend
 WORKDIR /var/www/html/frontend
 RUN npm install && npm install http-proxy-middleware
 
-# Retour au backend
 WORKDIR /var/www/html
 
-# Config Apache interne sur port 8080
+# Apache interne sur 8080
 RUN sed -i "s/80/8080/g" /etc/apache2/ports.conf && \
     sed -i "s/:80/:8080/g" /etc/apache2/sites-available/000-default.conf || true
 
-# Exposer le port que Render forward
+# Exposer le port Render
 EXPOSE 10000
 
-# Lancer PostgreSQL, Apache et Node
+# Lancer PostgreSQL, attendre qu'il soit prêt, puis Apache + Node
 CMD service postgresql start && \
+    echo "Waiting for PostgreSQL..." && \
+    until pg_isready -h 127.0.0.1 -p 5432; do sleep 1; done && \
     su postgres -c "psql -c \"CREATE USER myuser WITH PASSWORD 'mypassword';\" || true" && \
     su postgres -c "psql -c \"CREATE DATABASE mydb OWNER myuser;\" || true" && \
     apache2-foreground & \
