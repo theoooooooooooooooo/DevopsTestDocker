@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: gestion-salles-app
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        value: 127.0.0.1
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: mydb
+      - key: DB_USER
+        value: myuser
+      - key: DB_PASSWORD
+        value: mypassword
+    healthCheckPath: /health
