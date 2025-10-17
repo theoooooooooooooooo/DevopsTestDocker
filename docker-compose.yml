@@ -1,34 +1,6 @@
 version: "3.9"
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydb
-      # DB_HOST: db
-      # DB_PORT: 5432
-      # DB_NAME: mydb
-      # DB_USER: myuser
-      # DB_PASSWORD: mypassword
-    volumes:
-      - ./backend:/var/www/html
 
   db:
     image: postgres:15
@@ -42,6 +14,41 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/Ini.sql:/docker-entrypoint-initdb.d/Ini.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "app", "-d", "appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mydb
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+    volumes:
+      - ./backend:/var/www/html
+
+frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   db_data:
