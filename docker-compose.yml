@@ -21,11 +21,12 @@ services:
     depends_on:
       - db
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: mydb
-      DB_USER: myuser
-      DB_PASSWORD: mypassword
+      - DATABASE_URL=postgresql://app:app@db:5432/appdb
+      # DB_HOST: db
+      # DB_PORT: 5432
+      # DB_NAME: mydb
+      # DB_USER: myuser
+      # DB_PASSWORD: mypassword
     volumes:
       - ./backend:/var/www/html
 
