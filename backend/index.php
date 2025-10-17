@@ -13,9 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Configuration de la base de données
 $host = getenv('DB_HOST') ?: 'db';
-$dbname = getenv('DB_NAME') ?: 'gestion_salles';
-$username = getenv('DB_USER') ?: 'postgres';
-$password = getenv('DB_PASSWORD') ?: 'postgres';
+$dbname = getenv('DB_NAME') ?: 'mydb';
+$username = getenv('DB_USER') ?: 'myuser';
+$password = getenv('DB_PASSWORD') ?: 'mypassword';
 
 try {
     $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
